@@ -35,3 +35,27 @@ class Seek : public ISteeringBehavior
 	//Steering
 	virtual SteeringOutput  CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
+
+class Flee : public ISteeringBehavior
+{
+public:
+	Flee() = default;
+	virtual ~Flee() override = default;
+	
+	//Steering
+	virtual SteeringOutput  CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Arrive : public ISteeringBehavior
+{
+public:
+	Arrive() = default;
+	virtual ~Arrive() override = default;
+	
+	//Steering
+	virtual SteeringOutput  CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	
+private:
+	float const SlowRadius = 20;
+	float const StopRadius = 4;
+};
