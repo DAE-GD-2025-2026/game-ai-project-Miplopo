@@ -7,13 +7,30 @@
 
 SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	// Steering
 	SteeringOutput Steering{};
 	
-	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
+	//Agent.SetMaxLinearSpeed(300.0f);
 	
-	FVector AgentLocation = FVector(Agent.GetPosition().X, Agent.GetPosition().Y, 0.0f);
-	FVector AgentLinearVelocity = FVector(Agent.GetPosition().X + Agent.GetVelocity().X, Agent.GetPosition().Y + Agent.GetVelocity().Y, 0.0f);
-	FVector AgentForwardVelocity = FVector(Agent.GetPosition().X + Agent.GetActorForwardVector().X, Agent.GetPosition().Y + Agent.GetActorForwardVector().Y, 0.0f);
+	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
+	Steering.LinearVelocity.Normalize();
+	
+	// Debug lines
+	FVector AgentLocation = FVector(
+		Agent.GetPosition().X,
+		Agent.GetPosition().Y,
+		0.0f);
+	
+	FVector AgentLinearVelocity = FVector(
+		Agent.GetPosition().X + Steering.LinearVelocity.X * Agent.GetMaxLinearSpeed(),
+		Agent.GetPosition().Y + Steering.LinearVelocity.Y * Agent.GetMaxLinearSpeed(),
+		0.0f);
+	
+	FVector AgentForwardVelocity = FVector(
+		Agent.GetPosition().X + Agent.GetActorForwardVector().X,
+		Agent.GetPosition().Y + Agent.GetActorForwardVector().Y,
+		0.0f);
+	
 	FVector AgentRotationalVelocity = FVector();
 	
 	DrawDebugLine(Agent.GetWorld(),
@@ -23,13 +40,14 @@ SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
-	AgentForwardVelocity * Agent.GetLinearVelocity().Length(),
+	AgentForwardVelocity,
 	FColor::Magenta);
 	
-	DrawDebugLine(Agent.GetWorld(),
+	/*DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
 	AgentRotationalVelocity * Agent.GetAngularVelocity(),
-	FColor::Cyan);
+	FColor::Cyan);*/
+	
 	//Add debug rendering for grades!!!
 	
 	return Steering;
