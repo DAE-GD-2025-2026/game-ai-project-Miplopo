@@ -1,5 +1,6 @@
 #include "SteeringBehaviors.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
+#include <iostream>
 
 //SEEK
 //*******
@@ -10,38 +11,49 @@ SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	// Steering
 	SteeringOutput Steering{};
 	
-	//Agent.SetMaxLinearSpeed(300.0f);
-	
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 	Steering.LinearVelocity.Normalize();
 	
-	// Debug lines
+	// Debug info
 	FVector AgentLocation = FVector(
 		Agent.GetPosition().X,
 		Agent.GetPosition().Y,
 		0.0f);
 	
-	FVector AgentLinearVelocity = FVector(
+	FVector AgentDirection = FVector(
 		Agent.GetPosition().X + Steering.LinearVelocity.X * Agent.GetMaxLinearSpeed(),
 		Agent.GetPosition().Y + Steering.LinearVelocity.Y * Agent.GetMaxLinearSpeed(),
 		0.0f);
 	
 	FVector AgentForwardVelocity = FVector(
-		Agent.GetPosition().X + Agent.GetActorForwardVector().X,
-		Agent.GetPosition().Y + Agent.GetActorForwardVector().Y,
+		Agent.GetPosition().X + Agent.GetActorForwardVector().X * abs(Agent.GetLinearVelocity().Length()),
+		Agent.GetPosition().Y + Agent.GetActorForwardVector().Y * abs(Agent.GetLinearVelocity().Length()),
 		0.0f);
 	
 	FVector AgentRotationalVelocity = FVector();
 	
 	DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
-	AgentLinearVelocity,
+	AgentDirection,
 	FColor::Green);
 	
 	DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
 	AgentForwardVelocity,
 	FColor::Magenta);
+	
+	DrawDebugCircle(Agent.GetWorld(),
+		FVector(Target.Position.X,Target.Position.Y, 0.0f),
+		20.0f,
+		500,
+		FColor::Red,
+		false,
+		-1.0f,
+		0,
+		5.0f,
+		FVector(1.0f, 0.0f, 0.0f),
+		FVector(0.0f, 1.0f, 0.0f),
+		false);
 	
 	/*DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
