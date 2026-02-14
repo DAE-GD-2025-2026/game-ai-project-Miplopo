@@ -1,6 +1,7 @@
 #include "SteeringBehaviors.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
-#include <iostream>
+
+#include "VectorTypes.h"
 
 //SEEK
 //*******
@@ -14,7 +15,7 @@ SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 	Steering.LinearVelocity.Normalize();
 	
-	// Debug info
+	/*// Debug info
 	FVector AgentLocation = FVector(
 		Agent.GetPosition().X,
 		Agent.GetPosition().Y,
@@ -30,7 +31,10 @@ SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetPosition().Y + Agent.GetActorForwardVector().Y * abs(Agent.GetLinearVelocity().Length()),
 		0.0f);
 	
-	FVector AgentRotationalVelocity = FVector();
+	FVector AgentRotationalVelocity = FVector(
+		Agent.GetPosition().X,
+		Agent.GetPosition().X,
+		0.0f);
 	
 	DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
@@ -58,9 +62,9 @@ SteeringOutput  Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	/*DrawDebugLine(Agent.GetWorld(),
 	AgentLocation,
 	AgentRotationalVelocity * Agent.GetAngularVelocity(),
-	FColor::Cyan);*/
+	FColor::Cyan);#1#
 	
-	//Add debug rendering for grades!!!
+	//Add debug rendering for grades!!!*/
 	
 	return Steering;
 }
@@ -78,8 +82,32 @@ SteeringOutput  Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 SteeringOutput  Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{};
-	
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
+	
+	float distance {};
+	distance = (Target.Position - Agent.GetPosition()).Length();
+	
+	if (startMaxSpeed < Agent.GetMaxLinearSpeed())
+	{
+		startMaxSpeed = Agent.GetMaxLinearSpeed();
+	}
+	if (startDistance < distance)
+	{
+		startDistance = distance;
+	}
+	
+	if (distance < SlowRadius && distance > StopRadius)
+	{
+		Agent.SetMaxLinearSpeed(startMaxSpeed * (distance/startDistance));
+	}
+	else if (distance <= StopRadius)
+	{
+		Agent.SetMaxLinearSpeed(0.0f);
+	}
+	else
+	{
+		Agent.SetMaxLinearSpeed(startMaxSpeed);
+	}
 	//Add debug rendering for grades!!!
 	
 	return Steering;

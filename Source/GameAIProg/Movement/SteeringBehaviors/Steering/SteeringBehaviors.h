@@ -56,6 +56,8 @@ public:
 	virtual SteeringOutput  CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 	
 private:
-	float const SlowRadius = 20;
-	float const StopRadius = 4;
+	float const SlowRadius = 800.0f;
+	float const StopRadius = 200.0f;
+	float startMaxSpeed;
+	float startDistance;
 };
