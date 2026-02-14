@@ -112,3 +112,14 @@ SteeringOutput  Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	return Steering;
 }
+
+SteeringOutput  Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+	
+	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
+	Agent.SetMaxLinearSpeed(0.0f);
+	//Add debug rendering for grades!!!
+	
+	return Steering;
+}
