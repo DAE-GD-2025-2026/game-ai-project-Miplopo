@@ -134,3 +134,14 @@ SteeringOutput  Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	return Steering;
 }
+
+SteeringOutput  Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+	
+	Steering.LinearVelocity = -(Target.Position + Target.LinearVelocity - Agent.GetPosition());
+	Agent.SetMaxLinearSpeed(200.0f);
+	//Add debug rendering for grades!!!
+	
+	return Steering;
+}
