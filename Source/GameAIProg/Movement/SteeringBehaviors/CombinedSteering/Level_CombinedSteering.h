@@ -31,6 +31,6 @@ private:
 	//Datamembers
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
-
 	
+	BlendedSteering* pBlendedSteering;
 };
