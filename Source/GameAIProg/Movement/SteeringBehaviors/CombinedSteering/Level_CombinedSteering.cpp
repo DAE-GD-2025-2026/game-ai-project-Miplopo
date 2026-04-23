@@ -1,7 +1,8 @@
 #include "Level_CombinedSteering.h"
 
+#include <format>
+#include <string>
 #include "imgui.h"
-
 
 // Sets default values
 ALevel_CombinedSteering::ALevel_CombinedSteering()
@@ -13,8 +14,20 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 // Called when the game starts or when spawned
 void ALevel_CombinedSteering::BeginPlay()
 {
+	
+	std::vector<BlendedSteering::WeightedBehavior> WeightedBehaviors;
+	ISteeringBehavior* pBeh{};
+	BlendedSteering::WeightedBehavior firstBeh{pBeh, 0.0f};
+	BlendedSteering::WeightedBehavior secondBeh{pBeh, 0.0f};
+	WeightedBehaviors.push_back(firstBeh);
+	WeightedBehaviors.push_back(secondBeh);
+	
+	pBlendedSteering = new BlendedSteering{WeightedBehaviors};
+	
+	pBlendedAgent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, FRotator::ZeroRotator);
+	pBlendedAgent->SetSteeringBehavior(pBlendedSteering);
+	
 	Super::BeginPlay();
-
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
@@ -27,7 +40,7 @@ void ALevel_CombinedSteering::BeginDestroy()
 void ALevel_CombinedSteering::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 #pragma region UI
 	//UI
 	{
@@ -65,10 +78,9 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		ImGui::Spacing();
 		ImGui::Spacing();
 	
-		
 		if (ImGui::Checkbox("Debug Rendering", &CanDebugRender))
 		{
-   // TODO: Handle the debug rendering of your agents here :)
+			// TODO: Handle the debug rendering of your agents here :)
 		}
 		ImGui::Checkbox("Trim World", &TrimWorld->bShouldTrimWorld);
 		if (TrimWorld->bShouldTrimWorld)
@@ -84,7 +96,8 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
-		
+
+
 		ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
 			pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
 			[this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal; }, "%.2f");
@@ -98,7 +111,65 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	}
 #pragma endregion
 	
-	// Combined Steering Update
- // TODO: implement handling mouse click input for seek
- // TODO: implement Make sure to also evade the wanderer
+	for (ImGui_Agent& a : CombinedSteeringAgents)
+	{
+		if (a.Agent)
+		{
+			UpdateTarget(a);
+		}
+	}
 }
+
+	// Combined Steering Update
+	// TODO: implement handling mouse click input for seek
+	// TODO: implement Make sure to also evade the wanderer
+
+void ALevel_CombinedSteering::RefreshTargetLabels()
+{
+	TargetLabels.clear();
+	
+	TargetLabels.push_back("Mouse");
+	for (int i{0}; i < CombinedSteeringAgents.size(); ++i)
+	{
+		TargetLabels.push_back(std::format("Agent {}", i));
+	}
+}
+
+void ALevel_CombinedSteering::UpdateTarget(ImGui_Agent& Agent)
+{
+	// Note: MouseTarget position is updated via Level BP every click
+	
+	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
+	if (!bUseMouseAsTarget)
+	{
+		ASteeringAgent* const TargetAgent = CombinedSteeringAgents[Agent.SelectedTarget].Agent;
+
+		FTargetData Target;
+		Target.Position = TargetAgent->GetPosition();
+		Target.Orientation = TargetAgent->GetRotation();
+		Target.LinearVelocity = TargetAgent->GetLinearVelocity();
+		Target.AngularVelocity = TargetAgent->GetAngularVelocity();
+
+		Agent.Behavior->SetTarget(Target);
+	}
+	else
+	{
+		Agent.Behavior->SetTarget(MouseTarget);
+	}
+}
+
+void ALevel_CombinedSteering::RefreshAgentTargets(unsigned int IndexRemoved)
+{
+	for (UINT i = 0; i < CombinedSteeringAgents.size(); ++i)
+	{
+		if (i >= IndexRemoved)
+		{
+			auto& Agent = CombinedSteeringAgents[i];
+			if (Agent.SelectedTarget == IndexRemoved || i  == Agent.SelectedTarget)
+			{
+				--Agent.SelectedTarget;
+			}
+		}
+	}
+}
+	

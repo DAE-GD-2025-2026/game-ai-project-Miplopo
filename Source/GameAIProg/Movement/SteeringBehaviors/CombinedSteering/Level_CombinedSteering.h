@@ -3,6 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include <vector>
+#include <memory>
+#include <string>
+
+#include "CoreMinimal.h"
 #include "CombinedSteeringBehaviors.h"
 #include "GameAIProg/Shared/Level_Base.h"
 #include "GameAIProg/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
@@ -28,9 +33,50 @@ protected:
 	virtual void BeginDestroy() override;
 
 private:
-	//Datamembers
+	//Data members
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 	
-	BlendedSteering* pBlendedSteering;
+	//Steering's
+	ISteeringBehavior* pEvadeBehavior{ new Evade() };
+	ISteeringBehavior* pWanderBehavior{ new Wander() };
+	ISteeringBehavior* pSeekBehavior{ new Seek() };
+    
+	//Combined steering's
+	BlendedSteering* pBlendedSteering{ nullptr };
+	PrioritySteering* pPrioritySteering{ nullptr };
+    
+    
+	//Agents
+	ASteeringAgent* pBlendedAgent{ nullptr };
+	ASteeringAgent* pPriorityAgent{ nullptr };
+	
+	enum class BehaviorTypes
+	{
+		Seek,
+		Wander,
+		Flee,
+		Arrive,
+		Evade,
+		Pursuit,
+		Face,
+
+		// @ End
+		Count
+	};
+	
+	struct ImGui_Agent final
+	{
+		ASteeringAgent* Agent{nullptr};
+		std::unique_ptr<ISteeringBehavior> Behavior{nullptr};
+		int SelectedBehavior{static_cast<int>(BehaviorTypes::Seek)};
+		int SelectedTarget = -1;
+	};
+	
+	std::vector<ImGui_Agent> CombinedSteeringAgents{};
+	std::vector<std::string> TargetLabels{};
+	
+	void RefreshTargetLabels();
+	void UpdateTarget(ImGui_Agent& Agent);
+	void RefreshAgentTargets(unsigned int IndexRemoved);
 };
